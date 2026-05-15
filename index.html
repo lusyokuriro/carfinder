@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Used Car Prompt Generator & Inspection Companion</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #1e3a8a;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --accent-mech: #dc2626;
+            --accent-deal: #10b981;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--secondary);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 600px) {
+            .form-group.full-width { grid-column: span 1; }
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--dark);
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--secondary);
+        }
+
+        .output-box {
+            margin-top: 30px;
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 20px;
+            border-radius: 8px;
+            position: relative;
+            display: none;
+        }
+
+        .output-box pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+            width: auto;
+            cursor: pointer;
+        }
+
+        .copy-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+        hr {
+            margin: 40px 0;
+            border: 0;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .checklist-section h2 {
+            color: var(--secondary);
+            text-align: center;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            width: auto;
+            margin-right: 12px;
+            margin-top: 5px;
+            transform: scale(1.2);
+        }
+
+        .tag {
+            font-size: 11px;
+            text-transform: uppercase;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 8px;
+            color: white;
+            display: inline-block;
+        }
+
+        .tag.mechanic { background-color: var(--accent-mech); }
+        .tag.dealer { background-color: var(--accent-deal); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🚗 Car Review Prompt Builder</h1>
+    <p class="subtitle">Generate an expert Mechanic/Dealer evaluation prompt for any online listing.</p>
+    
+    <div class="grid">
+        <div class="form-group">
+            <label for="carTitle">Car Title / Year / Model</label>
+            <input type="text" id="carTitle" placeholder="e.g., 2012 Subaru Forester">
+        </div>
+        <div class="form-group">
+            <label for="price">Listed Price</label>
+            <input type="text" id="price" placeholder="e.g., A$4,450">
+        </div>
+        <div class="form-group">
+            <label for="specs">Quick Specs (Mileage, Trans, Fuel)</label>
+            <input type="text" id="specs" placeholder="e.g., 280,000 km, Manual, Diesel">
+        </div>
+        <div class="form-group">
+            <label for="location">Location / Date Listed</label>
+            <input type="text" id="location" placeholder="e.g., Gerringong, NSW">
+        </div>
+        <div class="form-group full-width">
+            <label for="description">Seller's Description (Paste Everything)</label>
+            <textarea id="description" placeholder="Paste the entire text description from the ad here..."></textarea>
+        </div>
+    </div>
+
+    <button onclick="generatePrompt()">Build & Copy Prompt</button>
+
+    <div class="output-box" id="outputContainer">
+        <button class="copy-btn" onclick="copyToClipboard()">Copy Text</button>
+        <pre id="outputText"></pre>
+    </div>
+
+    <hr>
+
+    <div class="checklist-section">
+        <h2>📋 On-Site Inspection Checklist</h2>
+        <p class="subtitle" style="margin-bottom: 15px;">Use these quick checkpoints when testing the car in person.</p>
+        
+        <div class="checklist-item">
+            <input type="checkbox" id="item1">
+            <label for="item1"><span class="tag mechanic">Mechanic</span><strong>Cold Start:</strong> Pop the hood before starting. Is the engine already warm? Look for smoke out the pipe on ignition.</label>
+        </div>
+        <div class="checklist-item">
+            <input type="checkbox" id="item2">
+            <label for="item2"><span class="tag mechanic">Mechanic</span><strong>Fluids Check:</strong> Look under the oil cap for milky sludge (head gasket flag) and check coolant clarity.</label>
+        </div>
+        <div class="checklist-item">
+            <input type="checkbox" id="item3">
+            <label for="item3"><span class="tag mechanic">Mechanic</span><strong>The Transmission:</strong> If manual, check clutch bite point and gear crunching. If automatic, feel for jerky shifts.</label>
+        </div>
+        <div class="checklist-item">
+            <input type="checkbox" id="item4">
+            <label for="item4"><span class="tag dealer">Dealer</span><strong>Logbook Math:</strong> Match service dates and odometers. Check for missing gaps in timeline, not just stamps.</label>
+        </div>
+        <div class="checklist-item">
+            <input type="checkbox" id="item5">
+            <label for="item5"><span class="tag dealer">Dealer</span><strong>Tyres & Wear:</strong> Are the tyres matching brands with even tread? Uneven wear means bad alignment or suspension bush issues.</label>
+        </div>
+    </div>
+</div>
+
+<script>
+    function generatePrompt() {
+        const title = document.getElementById('carTitle').value || '[Car Title]';
+        const price = document.getElementById('price').value || '[Price]';
+        const specs = document.getElementById('specs').value || '[Specs]';
+        const loc = document.getElementById('location').value || '[Location]';
+        const desc = document.getElementById('description').value || '[Description]';
+
+        const promptText = `Act as a highly experienced automotive mechanic and a shrewd used-car dealer. I want you to review a second-hand car listing for me. 
+
+First, give me a quick bulleted breakdown of the key specs for this specific year/model (Engine, Output, Drivetrain, Fuel Economy, and Towing Capacity).
+
+Then, provide your analysis broken into three sections:
+
+1. THE MECHANIC'S PERSPECTIVE: Break down the cold, hard mechanical reality. Look closely at the listed kilometers and age. Point out what the common issues, hidden red flags, or ticking time bombs are for this specific engine/model generation. Tell me what I need to look for, listen for, or ask the seller about during a test drive.
+2. THE CAR DEALER'S PERSPECTIVE: Analyze the price, market value, and presentation. Tell me if it's priced fairly for the current market, what adds value in the listing, what makes it a hard sell, and how negotiable you think the seller might be.
+3. THE FINAL VERDICT & NEGOTIATION STRATEGY: Give me a bottom-line summary and a realistic cash offer strategy to pitch to the seller.
+
+Here are the details of the car:
+Title/Model: ${title}
+Price: ${price}
+Location/Listed: ${loc}
+
+About this vehicle:
+${specs}
+
+Seller's Description:
+${desc}`;
+
+        document.getElementById('outputText').innerText = promptText;
+        document.getElementById('outputContainer').style.display = 'block';
+        
+        // Auto-scroll to output
+        document.getElementById('outputContainer').scrollIntoView({ behavior: 'smooth' });
+        
+        // Auto copy to clipboard functionality
+        navigator.clipboard.writeText(promptText).then(() => {
+            alert("Prompt generated and copied to clipboard automatically!");
+        });
+    }
+
+    function copyToClipboard() {
+        const text = document.getElementById('outputText').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Copied to clipboard!");
+        });
+    }
+</script>
+</body>
+</html>
